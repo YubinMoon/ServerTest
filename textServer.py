@@ -1,9 +1,12 @@
 import socket
 import time
+import json
 import threading
 
 PORT = 999
 BUFSIZE = 1024
+messageQueue = {}
+index = 0
 
 
 def log(title, contents=None):
@@ -13,16 +16,34 @@ def log(title, contents=None):
     print("[{}]".format(title))
 
 
+def makeReturn(type, subject):
+  a = {
+      "type": type,
+      "subject": subject
+  }
+  temp = json.dumps(a)
+  return temp
+
+
 def connecting(client: socket.socket, address):
-  print(client)
+  global index
   while True:
-    a = client.recv(BUFSIZE).decode()
-    log("입력",a)
-    if a == ""or a == 'a':
-      log("종료됨",address)
+    request = client.recv(BUFSIZE).decode()
+    if request == "":
+      log("종료됨", address)
       client.close()
       return
-    client.send(bytes(a,"utf-8"))
+    temp = json.loads(request)
+    if temp["type"] == "message":
+      messageQueue[index] = temp["subject"]
+      index += 1
+      a = makeReturn("lastindex",str(index))
+    elif temp["type"] == "getindex":
+      a = makeReturn("message", messageQueue[temp["subject"]])
+    elif temp["type"] == "lastindex":
+      a = makeReturn("lastindex",str(index)) 
+    client.send(bytes(a, "utf-8"))
+
 
 server = socket.socket()
 server.bind(("", PORT))
