@@ -6,7 +6,7 @@ import sys
 import threading
 
 RUNNING = True
-SERVERIP = "192.168.21.57"
+SERVERIP = "125.182.92.210"
 PORT = 999
 BUFSIZE = 1024
 netQueue = []
